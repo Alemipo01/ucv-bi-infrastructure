@@ -25,5 +25,10 @@ jobs:
       - name: Instalar soporte Databricks
         run: liquibase lpm add liquibase-databricks --global --skip-existing
 
+      - name: Descargar controlador JDBC
+        run: |
+          mkdir -p drivers
+          curl -L --fail -o drivers/databricks-jdbc.jar https://repo1.maven.org/maven2/com/databricks/databricks-jdbc/2.6.40/databricks-jdbc-2.6.40.jar
+
       - name: Desplegar migraciones
-        run: liquibase update
+        run: liquibase --classpath=drivers/databricks-jdbc.jar update
