@@ -1,0 +1,35 @@
+name: Liquibase CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    env:
+      LIQUIBASE_COMMAND_URL: ${{ secrets.DATABRICKS_JDBC_URL }}
+      LIQUIBASE_COMMAND_USERNAME: token
+      LIQUIBASE_COMMAND_PASSWORD: ${{ secrets.DATABRICKS_TOKEN }}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: changelog/db.changelog-master.yaml
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: liquibase/setup-liquibase@v3
+        with:
+          version: "5.0.3"
+          edition: community
+
+      - name: Instalar soporte Databricks
+        run: liquibase lpm add liquibase-databricks --global --skip-existing
+
+      - name: Validar migraciones
+        run: liquibase validate
+
+      - name: Revisar cambios pendientes
+        run: liquibase status --verbose
+
+      - name: Generar SQL sin aplicar
+        run: liquibase update-sql
